@@ -187,6 +187,22 @@ st.markdown(
             color: {MUTED};
             margin-top: 2.2rem;
         }}
+        div[data-testid="stExpander"]:last-of-type {{
+            background: {INK};
+            border-radius: 4px;
+            border: 1px solid #2E333B;
+        }}
+        div[data-testid="stExpander"]:last-of-type summary {{
+            color: {PAPER};
+        }}
+        div[data-testid="stExpander"]:last-of-type p,
+        div[data-testid="stExpander"]:last-of-type .stCaption,
+        div[data-testid="stExpander"]:last-of-type [data-testid="stCaptionContainer"] {{
+            color: {PAPER} !important;
+        }}
+        div[data-testid="stExpander"]:last-of-type [data-testid="stDataFrame"] {{
+            background: #2A2E35;
+        }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -335,6 +351,32 @@ if predict_clicked:
                     use_container_width=True,
                     hide_index=True,
                 )
+
+with st.expander("Model performance"):
+    st.markdown(
+        "Trained on **16,000** labeled sentences (80/20 train-test split) using "
+        "TF-IDF + Logistic Regression with balanced class weighting."
+    )
+    metrics_df = pd.DataFrame(
+        {
+            "Metric": ["Overall accuracy", "Love recall", "Surprise recall"],
+            "Before balancing": ["86.3%", "61.5%", "46.9%"],
+            "After balancing (current model)": ["88.5%", "91.2%", "85.8%"],
+        }
+    )
+    styled_metrics = metrics_df.style.set_properties(**{
+        "background-color": "#2A2E35",
+        "color": PAPER,
+        "border-color": "#3A3F47",
+    }).set_table_styles([
+        {"selector": "th", "props": [("background-color", "#20242B"), ("color", PAPER)]}
+    ])
+    st.dataframe(styled_metrics, use_container_width=True, hide_index=True)
+    st.caption(
+        "The training data is imbalanced (joy: 5,362 examples vs. love: 1,304 and "
+        "surprise: 572), which initially caused the model to under-predict the "
+        "minority classes. Training with class_weight='balanced' fixed this."
+    )
 
 st.markdown(
     '<div class="ed-footer">Emotion Detector — TF-IDF + Logistic Regression — made by Jaswant</div>',
