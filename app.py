@@ -208,12 +208,31 @@ def load_artifacts():
 vectorizer, model, reverse_map = load_artifacts()
 
 
+STOPWORDS = {
+    "i","me","my","myself","we","our","ours","ourselves","you","you're","you've","you'll","you'd",
+    "your","yours","yourself","yourselves","he","him","his","himself","she","she's","her","hers",
+    "herself","it","it's","its","itself","they","them","their","theirs","themselves","what","which",
+    "who","whom","this","that","that'll","these","those","am","is","are","was","were","be","been",
+    "being","have","has","had","having","do","does","did","doing","a","an","the","and","but","if",
+    "or","because","as","until","while","of","at","by","for","with","about","against","between",
+    "into","through","during","before","after","above","below","to","from","up","down","in","out",
+    "on","off","over","under","again","further","then","once","here","there","when","where","why",
+    "how","all","any","both","each","few","more","most","other","some","such","no","nor","not",
+    "only","own","same","so","than","too","very","s","t","can","will","just","don","don't","should",
+    "should've","now","d","ll","m","o","re","ve","y","ain","aren","aren't","couldn","couldn't",
+    "didn","didn't","doesn","doesn't","hadn","hadn't","hasn","hasn't","haven","haven't","isn",
+    "isn't","ma","mightn","mightn't","mustn","mustn't","needn","needn't","shan","shan't","shouldn",
+    "shouldn't","wasn","wasn't","weren","weren't","won","won't","wouldn","wouldn't",
+}
+
+
 def clean_text(text: str) -> str:
     text = text.lower()
-    text = re.sub(r"http\S+|www\S+", "", text)
+    text = "".join(ch for ch in text if ch.isascii())
     text = re.sub(r"[^a-z\s]", " ", text)
-    text = re.sub(r"\s+", " ", text).strip()
-    return text
+    words = text.split()
+    words = [w for w in words if w not in STOPWORDS]
+    return " ".join(words)
 
 
 def render_spectrum(probs_by_emotion: dict, predicted: str) -> str:
@@ -246,21 +265,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+def clear_input():
+    st.session_state.user_text = ""
+
+
 text_input = st.text_area(
     "Enter your text",
     height=110,
     placeholder="e.g. I can't believe how amazing today turned out to be!",
     label_visibility="collapsed",
+    key="user_text",
 )
 
 col1, col2 = st.columns([1, 1])
 with col1:
     predict_clicked = st.button("Detect emotion", type="primary", use_container_width=True)
 with col2:
-    clear_clicked = st.button("Clear", type="secondary", use_container_width=True)
-
-if clear_clicked:
-    st.rerun()
+    st.button("Clear", type="secondary", use_container_width=True, on_click=clear_input)
 
 if predict_clicked:
     if not text_input.strip():
